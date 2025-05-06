@@ -147,7 +147,7 @@ export default function Main({ navigation }) {
                     <Text>{item.nome}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => deletarUsuario(index)}>
-                    <Ionicons name="trash" size={20} color="red" />
+                    <Ionicons name="trash" size={20} />
                   </TouchableOpacity>
                 </View>
               )}

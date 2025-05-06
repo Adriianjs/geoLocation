@@ -35,7 +35,6 @@ export default function CadastrarUsuario({ navigation }) {
     setError(null);
 
     try {
-      // Normalizando o endereço para remover os acentos
       const address = normalizeText(
         `${formData.rua}, ${formData.cidade}, ${formData.estado}`
       );
@@ -49,14 +48,11 @@ export default function CadastrarUsuario({ navigation }) {
 
       const { latitude, longitude } = result[0];
 
-      // Criando um novo usuário com latitude e longitude
       const newUser = { ...formData, latitude, longitude };
 
-      // Recuperando usuários atuais do AsyncStorage
       const users = await AsyncStorage.getItem("users");
       const usersArray = users ? JSON.parse(users) : [];
 
-      // Salvando o novo usuário no AsyncStorage
       usersArray.push(newUser);
       await AsyncStorage.setItem("users", JSON.stringify(usersArray));
 
