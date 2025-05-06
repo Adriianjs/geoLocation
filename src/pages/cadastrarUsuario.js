@@ -1,9 +1,16 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Importando AsyncStorage
 
-function CadastrarUsuario({ navigation }) {
+export default function CadastrarUsuario({ navigation }) {
   const [formData, setFormData] = useState({
     nome: "",
     rua: "",
@@ -15,6 +22,10 @@ function CadastrarUsuario({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Função para normalizar o texto removendo os acentos
+  const normalizeText = (text) =>
+    text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
   const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
   };
@@ -23,18 +34,11 @@ function CadastrarUsuario({ navigation }) {
     setLoading(true);
     setError(null);
 
-    const { rua, cidade, estado } = formData;
-
-    // Verificando se todos os campos foram preenchidos
-    if (!rua || !cidade || !estado) {
-      setError("Por favor, preencha todos os campos.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      // Usando GeocodeAsync para obter a latitude e longitude do endereço
-      const address = `${rua}, ${cidade}, ${estado}`;
+      // Normalizando o endereço para remover os acentos
+      const address = normalizeText(
+        `${formData.rua}, ${formData.cidade}, ${formData.estado}`
+      );
       const result = await Location.geocodeAsync(address);
 
       if (result.length === 0) {
@@ -45,7 +49,7 @@ function CadastrarUsuario({ navigation }) {
 
       const { latitude, longitude } = result[0];
 
-      // Dados do usuário com latitude e longitude
+      // Criando um novo usuário com latitude e longitude
       const newUser = { ...formData, latitude, longitude };
 
       // Recuperando usuários atuais do AsyncStorage
@@ -71,63 +75,50 @@ function CadastrarUsuario({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Cadastrar Usuário</Text>
 
-      <View style={styles.inputGroup}>
-        <Text>Nome:</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.nome}
-          onChangeText={(value) => handleChange("nome", value)}
-          placeholder="Digite seu nome"
-        />
-      </View>
-
-      <View style={styles.inputGroup}>
-        <Text>Rua:</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.rua}
-          onChangeText={(value) => handleChange("rua", value)}
-          placeholder="Digite sua rua"
-        />
-      </View>
-
-      <View style={styles.inputGroup}>
-        <Text>Número:</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.numero}
-          onChangeText={(value) => handleChange("numero", value)}
-          placeholder="Digite o número"
-        />
-      </View>
-
-      <View style={styles.inputGroup}>
-        <Text>Cidade:</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.cidade}
-          onChangeText={(value) => handleChange("cidade", value)}
-          placeholder="Digite sua cidade"
-        />
-      </View>
-
-      <View style={styles.inputGroup}>
-        <Text>Estado:</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.estado}
-          onChangeText={(value) => handleChange("estado", value)}
-          placeholder="Digite seu estado"
-        />
-      </View>
-
-      {error && <Text style={styles.errorText}>{error}</Text>}
-
-      <Button
-        title={loading ? "Cadastrando..." : "Salvar"}
-        onPress={handleSubmit}
-        disabled={loading}
+      <Text>Nome:</Text>
+      <TextInput
+        style={styles.input}
+        value={formData.nome}
+        onChangeText={(value) => handleChange("nome", value)}
+        placeholder="Digite seu nome"
       />
+
+      <Text>Rua:</Text>
+      <TextInput
+        style={styles.input}
+        value={formData.rua}
+        onChangeText={(value) => handleChange("rua", value)}
+        placeholder="Digite a rua"
+      />
+
+      <Text>Número:</Text>
+      <TextInput
+        style={styles.input}
+        value={formData.numero}
+        onChangeText={(value) => handleChange("numero", value)}
+        placeholder="Digite o número"
+      />
+
+      <Text>Cidade:</Text>
+      <TextInput
+        style={styles.input}
+        value={formData.cidade}
+        onChangeText={(value) => handleChange("cidade", value)}
+        placeholder="Digite sua cidade"
+      />
+
+      <Text>Estado:</Text>
+      <TextInput
+        style={styles.input}
+        value={formData.estado}
+        onChangeText={(value) => handleChange("estado", value)}
+        placeholder="Digite seu estado"
+      />
+
+      <Button title="Salvar" onPress={handleSubmit} />
+
+      {loading && <ActivityIndicator size="large" color="#3498DB" />}
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 }
@@ -143,20 +134,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
   },
-  inputGroup: {
-    marginBottom: 15,
-  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,
-    marginTop: 5,
+    marginBottom: 15,
   },
   errorText: {
     color: "red",
-    marginBottom: 10,
+    marginTop: 10,
+    fontSize: 16,
   },
 });
-
-export default CadastrarUsuario;
